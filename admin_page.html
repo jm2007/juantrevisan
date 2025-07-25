@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Supervisor - Sistema de Habilitaciones</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-left: 5px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            background: #f8f9ff;
+            border-color: #5a6fd8;
+        }
+
+        .upload-area.dragover {
+            background: #e8f0fe;
+            border-color: #4285f4;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        .operario-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .operario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .operario-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .operario-id {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .habilitaciones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .habilitacion {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .habilitacion:hover {
+            transform: scale(1.02);
+        }
+
+        .habilitacion.enabled {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .habilitacion.disabled {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .status-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .enabled .status-icon {
+            color: #28a745;
+        }
+
+        .disabled .status-icon {
+            color: #dc3545;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👨‍💼 Panel de Supervisor</h1>
+            <p>Sistema de Gestión de Habilitaciones de Operarios</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOperarios">0</div>
+                <div class="stat-label">Operarios Cargados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="ultimaCarga">-</div>
+                <div class="stat-label">Última Carga</div>
+            </div>
+        </div>
+
+        <!-- Carga de Excel -->
+        <div class="card">
+            <h2>📊 Cargar Datos de Operarios</h2>
+            <div class="upload-area" onclick="document.getElementById('excelFile').click()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Haz clic para seleccionar archivo Excel</div>
+                <div class="upload-hint">Formatos soportados: .xlsx, .xls</div>
+                <input type="file" id="excelFile" class="file-input" accept=".xlsx,.xls" />
+            </div>
+            <div id="uploadStatus"></div>
+        </div>
+
+        <!-- Búsqueda de Operarios -->
+        <div class="card">
+            <h2>🔍 Consultar Operario</h2>
+            <div class="search-section">
+                <input type="text" id="searchId" class="search-input" placeholder="Ingresa el ID del operario..." />
+                <button class="btn" onclick="buscarOperario()">Buscar</button>
+                <button class="btn" onclick="cargarTodosOperarios()">Ver Todos</button>
+            </div>
+            <div id="resultados"></div>
+        </div>
+    </div>
+
+    <script>
+        let operariosData = {};
+
+        // Cargar estadísticas al iniciar
+        window.onload = function() {
+            cargarEstadisticas();
+        };
+
+        // Manejo de carga de archivos
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                subirExcel(file);
+            }
+        });
+
+        // Drag and drop
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                subirExcel(files[0]);
+            }
+        });
+
+        async function subirExcel(file) {
+            const formData = new FormData();
+            formData.append('excel', file);
+
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Procesando archivo Excel...
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/upload-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    statusDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ ${result.mensaje}
+                        </div>
+                    `;
+                    cargarEstadisticas();
+                } else {
+                    throw new Error(result.error);
+                }
+
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="alert alert-error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function cargarEstadisticas() {
+            try {
+                const response = await fetch('/api/operarios');
+                const data = await response.json();
+                
+                const totalOperarios = Object.keys(data.operarios).length;
+                document.getElementById('totalOperarios').textContent = totalOperarios;
+                
+                if (totalOperarios > 0) {
+                    const ahora = new Date();
+                    document.getElementById('ultimaCarga').textContent = 
+                        ahora.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                }
+                
+                operariosData = data.operarios;
+                
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        async function buscarOperario() {
+            const id = document.getElementById('searchId').value.trim();
+            
+            if (!id) {
+                mostrarAlerta('Por favor ingresa un ID', 'error');
+                return;
+            }
+
+            const resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Buscando operario...</div>';
+
+            try {
+                const response = await fetch(`/api/operario/${id}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarOperario(data.operario);
+                } else {
+                    resultadosDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            ❌ ${data.error}
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                resultadosDiv.innerHTML = `
+                    <div class="alert alert-error">
+                        ❌ Error de conexión: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function cargarTodosOperarios() {
+            const resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando todos los operarios...</div>';
+
+            try {
+                const response = await fetch('/api/operarios');
+                const data = await response.json();
+
+                if (Object.keys(data.operarios).length === 0) {
+                    resultadosDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            ❌ No hay operarios cargados. Sube un archivo Excel primero.
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '<h3>📋 Todos los Operarios:</h3>';
+                
+                Object.entries(data.operarios).forEach(([id, operario]) => {
+                    html += generarCardOperario({id, ...operario});
+                });
+
+                resultadosDiv.innerHTML = html;
+
+            } catch (error) {
+                resultadosDiv.innerHTML = `
+                    <div class="alert alert-error">
+                        ❌ Error cargando operarios: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function mostrarOperario(operario) {
+            const resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = generarCardOperario(operario);
+        }
+
+        function generarCardOperario(operario) {
+            const habilitaciones = [
+                { nombre: 'Soldadura', valor: operario.soldadura },
+                { nombre: 'Pintura', valor: operario.pintura },
+                { nombre: 'Montaje', valor: operario.montaje },
+                { nombre: 'Control de Calidad', valor: operario.calidad },
+                { nombre: 'Electricidad', valor: operario.electricidad }
+            ];
+
+            const habilitacionesHTML = habilitaciones.map(hab => {
+                const esHabilitado = hab.valor.toLowerCase() === 'sí' || 
+                                   hab.valor.toLowerCase() === 'si' || 
+                                   hab.valor === '1' || 
+                                   hab.valor.toLowerCase() === 'true';
+                const claseCSS = esHabilitado ? 'enabled' : 'disabled';
+                const icono = esHabilitado ? '✅' : '❌';
+                
+                return `
+                    <div class="habilitacion ${claseCSS}">
+                        <span class="status-icon">${icono}</span>
+                        <span class="task-name">${hab.nombre}</span>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="operario-card">
+                    <div class="operario-header">
+                        <div class="operario-name">${operario.nombre}</div>
+                        <div class="operario-id">ID: ${operario.id}</div>
+                    </div>
+                    <div class="habilitaciones">
+                        ${habilitacionesHTML}
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 0.9em; color: #666;">
+                        🔗 URL del QR: <code>http://localhost:3000/operario?id=${operario.id}</code>
+                    </div>
+                </div>
+            `;
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            const resultadosDiv = document.getElementById('resultados');
+            const claseCSS = tipo === 'success' ? 'alert-success' : 'alert-error';
+            const icono = tipo === 'success' ? '✅' : '❌';
+            
+            resultadosDiv.innerHTML = `
+                <div class="alert ${claseCSS}">
+                    ${icono} ${mensaje}
+                </div>
+            `;
+        }
+
+        // Búsqueda con Enter
+        document.getElementById('searchId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarOperario();
+            }
+        });
+    </script>
+</body>
+</html>
